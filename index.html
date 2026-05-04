@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trắc nghiệm vui</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Ôn tập thông minh</p>
+        <h1>Trắc nghiệm chuyển đổi số</h1>
+        <p class="subtitle">Trả lời đúng để cộng điểm, nhận streak và kích hoạt hiệu ứng vui nhộn.</p>
+      </div>
+      <div class="score-card" aria-live="polite">
+        <span>Điểm</span>
+        <strong id="score">0</strong>
+      </div>
+    </section>
+
+    <section class="stats-panel" aria-label="Thong ke bai lam">
+      <div>
+      <span>Câu hỏi</span>
+        <strong><span id="currentQuestion">1</span>/<span id="totalQuestions">0</span></strong>
+      </div>
+      <div>
+        <span>Streak</span>
+        <strong id="streak">0</strong>
+      </div>
+      <div>
+        <span>Độ chính xác</span>
+        <strong id="accuracy">0%</strong>
+      </div>
+    </section>
+
+    <section class="quiz-card" id="quizCard">
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="question-topline">
+        <span class="category" id="category">Kien thuc chung</span>
+        <span class="points" id="points">+10 diem</span>
+      </div>
+
+      <h2 id="questionText"></h2>
+      <div class="answers" id="answers"></div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+
+      <div class="actions">
+        <button class="secondary" id="restartBtn" type="button">Làm lại</button>
+        <button class="primary" id="nextBtn" type="button" disabled>Câu tiếp theo</button>
+      </div>
+    </section>
+
+    <section class="result-card hidden" id="resultCard">
+      <p class="eyebrow">Hoàn thành</p>
+      <h2 id="resultTitle"></h2>
+      <p id="resultText"></p>
+      <button class="primary" id="playAgainBtn" type="button">Chơi lại từ đầu</button>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" aria-live="polite"></div>
+  <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+
+  <script src="questions-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
