@@ -12,13 +12,16 @@
 <body>
   <main class="app-shell">
     <section class="hero">
-      <div>
-        <p class="eyebrow">Ôn tập thông minh</p>
-        <h1>Trắc nghiệm chuyển đổi số</h1>
-        <p class="subtitle">Trả lời đúng để cộng điểm, nhận streak và kích hoạt hiệu ứng vui nhộn.</p>
+      <div class="hero-main">
+        <div class="logo-container">
+          <img src="agribank_learning_logo_1777899279461.png" alt="Agribank Learning Logo" class="app-logo">
+          <p class="eyebrow">Agribank Learning v2.0</p>
+        </div>
+        <h1>Ôn tập Nghiệp vụ & Thi thử 2026</h1>
+        <p class="subtitle">Hệ thống ôn luyện thông minh với ngân hàng hơn 4.000 câu hỏi nghiệp vụ, giúp bạn tự tin vượt qua mọi kỳ thi sát hạch.</p>
       </div>
       <div class="score-card" aria-live="polite">
-        <span>Điểm</span>
+        <span>Điểm tích lũy</span>
         <strong id="score">0</strong>
       </div>
     </section>
@@ -28,7 +31,11 @@
       <span>Câu hỏi</span>
         <strong><span id="currentQuestion">1</span>/<span id="totalQuestions">0</span></strong>
       </div>
-      <div>
+      <div id="timerContainer" class="hidden">
+        <span>Thời gian</span>
+        <strong id="timer">--:--</strong>
+      </div>
+      <div id="streakContainer">
         <span>Streak</span>
         <strong id="streak">0</strong>
       </div>
@@ -38,7 +45,23 @@
       </div>
     </section>
 
-    <section class="quiz-card" id="quizCard">
+    <!-- Mode Selection -->
+    <section class="mode-selection" id="modeSelection">
+      <div class="mode-card">
+        <div class="mode-icon">📚</div>
+        <h3>Chế độ Ôn tập</h3>
+        <p>Học tất cả 400 câu hỏi, không giới hạn thời gian, có giải thích chi tiết ngay sau khi chọn.</p>
+        <button class="primary" id="learningModeBtn">Bắt đầu Ôn tập</button>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">⏱️</div>
+        <h3>Chế độ Thi thử</h3>
+        <p>Thử thách với 100 câu hỏi ngẫu nhiên trong 60 phút. Chỉ xem kết quả sau khi hoàn thành.</p>
+        <button class="primary" id="examModeBtn">Bắt đầu Thi</button>
+      </div>
+    </section>
+
+    <section class="quiz-card hidden" id="quizCard">
       <div class="progress-track" aria-hidden="true">
         <div class="progress-bar" id="progressBar"></div>
       </div>
@@ -54,7 +77,7 @@
       <div class="feedback" id="feedback" aria-live="polite"></div>
 
       <div class="actions">
-        <button class="secondary" id="restartBtn" type="button">Làm lại</button>
+        <button class="secondary" id="restartBtn" type="button">Thoát</button>
         <button class="primary" id="nextBtn" type="button" disabled>Câu tiếp theo</button>
       </div>
     </section>
@@ -63,7 +86,8 @@
       <p class="eyebrow">Hoàn thành</p>
       <h2 id="resultTitle"></h2>
       <p id="resultText"></p>
-      <button class="primary" id="playAgainBtn" type="button">Chơi lại từ đầu</button>
+      <div id="examTimeResult" class="hidden" style="margin-bottom: 20px; font-weight: 700; color: var(--brand);"></div>
+      <button class="primary" id="playAgainBtn" type="button">Quay lại màn hình chính</button>
     </section>
   </main>
 

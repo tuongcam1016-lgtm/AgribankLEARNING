@@ -56,10 +56,23 @@ button {
   backdrop-filter: blur(18px);
 }
 
-.hero > div:first-child {
+.hero > .hero-main {
   flex: 1;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 30px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.app-logo {
+  height: 48px;
+  width: auto;
+  border-radius: 8px;
 }
 
 .eyebrow {
@@ -129,6 +142,10 @@ h1 {
   margin-bottom: 22px;
 }
 
+.stats-panel.exam-mode {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .stats-panel div {
   padding: 18px 22px;
   background: rgba(255, 255, 255, 0.58);
@@ -138,6 +155,62 @@ h1 {
   display: block;
   margin-top: 6px;
   font-size: 24px;
+}
+
+#timer.warning {
+  color: var(--bad);
+  animation: scorePop 1s infinite;
+}
+
+/* Mode Selection Styles */
+.mode-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.mode-card {
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+  border-radius: 16px;
+  padding: 40px 30px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mode-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 32px 70px rgba(34, 46, 80, 0.25);
+  border-color: var(--brand);
+}
+
+.mode-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.mode-card h3 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.mode-card p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  min-height: 72px;
+}
+
+.mode-card .primary {
+  width: 100%;
 }
 
 .quiz-card,
@@ -426,7 +499,11 @@ h1 {
     margin-top: 14px;
   }
 
-  .stats-panel {
+  .stats-panel.exam-mode {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-selection {
     grid-template-columns: 1fr;
   }
 

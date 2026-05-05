@@ -1,4 +1,5 @@
-const questions = Array.isArray(window.quizQuestions) ? shuffle([...window.quizQuestions]) : [];
+let allQuestions = Array.isArray(window.quizQuestions) ? window.quizQuestions : [];
+let questions = [];
 
 const scoreEl = document.querySelector("#score");
 const currentQuestionEl = document.querySelector("#currentQuestion");
@@ -21,18 +22,83 @@ const resultText = document.querySelector("#resultText");
 const toast = document.querySelector("#toast");
 const confettiLayer = document.querySelector("#confettiLayer");
 
+// New elements
+const modeSelection = document.querySelector("#modeSelection");
+const learningModeBtn = document.querySelector("#learningModeBtn");
+const examModeBtn = document.querySelector("#examModeBtn");
+const timerEl = document.querySelector("#timer");
+const timerContainer = document.querySelector("#timerContainer");
+const streakContainer = document.querySelector("#streakContainer");
+const statsPanel = document.querySelector(".stats-panel");
+const examTimeResult = document.querySelector("#examTimeResult");
+
 let currentIndex = 0;
 let score = 0;
 let streak = 0;
 let correctCount = 0;
 let answered = false;
+let quizMode = 'learning'; // 'learning' or 'exam'
+let timeLeft = 0;
+let timerInterval = null;
+let startTime = 0;
 
-totalQuestionsEl.textContent = questions.length;
+function initQuiz(mode) {
+  quizMode = mode;
+  currentIndex = 0;
+  score = 0;
+  streak = 0;
+  correctCount = 0;
+  answered = false;
 
-if (!questions.length) {
-  questionText.textContent = "Chưa có dữ liệu câu hỏi.";
-  answersEl.innerHTML = "";
-  nextBtn.disabled = true;
+  if (mode === 'learning') {
+    questions = shuffle([...allQuestions]);
+    timerContainer.classList.add("hidden");
+    streakContainer.classList.remove("hidden");
+    statsPanel.classList.remove("exam-mode");
+    examTimeResult.classList.add("hidden");
+  } else {
+    // Exam mode: 100 random questions
+    questions = shuffle([...allQuestions]).slice(0, 100);
+    timeLeft = 60 * 60; // 60 minutes
+    startTime = Date.now();
+    timerContainer.classList.remove("hidden");
+    streakContainer.classList.add("hidden");
+    statsPanel.classList.add("exam-mode");
+    startTimer();
+  }
+
+  totalQuestionsEl.textContent = questions.length;
+  modeSelection.classList.add("hidden");
+  quizCard.classList.remove("hidden");
+  resultCard.classList.add("hidden");
+
+  updateStats();
+  renderQuestion();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft -= 1;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      showResult();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+  timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  
+  if (timeLeft < 300) { // 5 minutes left
+    timerEl.classList.add("warning");
+  } else {
+    timerEl.classList.remove("warning");
+  }
 }
 
 function renderQuestion() {
@@ -42,9 +108,10 @@ function renderQuestion() {
   answered = false;
 
   currentQuestionEl.textContent = currentIndex + 1;
-  categoryEl.textContent = item.category;
+  categoryEl.textContent = item.category || "General";
   questionText.textContent = item.question;
-  pointsEl.textContent = `+${pointsForCurrentStreak()} điểm`;
+  pointsEl.textContent = quizMode === 'learning' ? `+${pointsForCurrentStreak()} điểm` : "Thi thử";
+  
   feedbackEl.textContent = "";
   feedbackEl.className = "feedback";
   nextBtn.disabled = true;
@@ -52,7 +119,8 @@ function renderQuestion() {
   progressBar.style.width = `${(currentIndex / questions.length) * 100}%`;
 
   answersEl.innerHTML = "";
-  item.answers.forEach((answer, index) => {
+  const options = item.options || item.answers || [];
+  options.forEach((answer, index) => {
     const button = document.createElement("button");
     button.className = "answer";
     button.type = "button";
@@ -77,22 +145,28 @@ function chooseAnswer(index) {
   });
 
   if (isCorrect) {
-    const gained = pointsForCurrentStreak();
-    score += gained;
-    streak += 1;
+    if (quizMode === 'learning') {
+      const gained = pointsForCurrentStreak();
+      score += gained;
+      streak += 1;
+      showToast(`+${gained} điểm | Streak ${streak}`);
+    } else {
+      score += 10; // Simple scoring for exam
+    }
     correctCount += 1;
-    feedbackEl.textContent = `Chinh xac! ${item.explanation}`;
+    feedbackEl.textContent = quizMode === 'learning' ? `Chính xác! ${item.explanation}` : "Đã ghi nhận câu trả lời.";
     feedbackEl.classList.add("good");
     flashCard("correct-flash");
-    popScore();
-    showToast(`+${gained} điểm | Streak ${streak}`);
-    burstConfetti();
+    if (quizMode === 'learning') {
+        popScore();
+        burstConfetti();
+    }
   } else {
     streak = 0;
-    feedbackEl.textContent = `Chua dung. ${item.explanation}`;
+    feedbackEl.textContent = quizMode === 'learning' ? `Chưa đúng. ${item.explanation}` : "Đã ghi nhận câu trả lời.";
     feedbackEl.classList.add("bad");
     flashCard("wrong-flash");
-    showToast("Sai rồi, thử câu tiếp theo nào");
+    if (quizMode === 'learning') showToast("Sai rồi, thử câu tiếp theo nào");
   }
 
   updateStats();
@@ -122,25 +196,40 @@ function nextQuestion() {
 }
 
 function showResult() {
+  clearInterval(timerInterval);
   quizCard.classList.add("hidden");
   resultCard.classList.remove("hidden");
   progressBar.style.width = "100%";
+  
   const accuracy = Math.round((correctCount / questions.length) * 100);
-  resultTitle.textContent = `${score} điểm - đúng ${correctCount}/${questions.length} câu`;
-  resultText.textContent = `Độ chính xác ${accuracy}%. ${accuracy >= 80 ? "Kết quả rất tốt." : "Hãy làm lại để tăng điểm và giữ streak cao hơn."}`;
+  resultTitle.textContent = `${score} điểm - Đúng ${correctCount}/${questions.length} câu`;
+  
+  let msg = `Độ chính xác ${accuracy}%. `;
+  if (quizMode === 'exam') {
+    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+    const spentMins = Math.floor(timeSpent / 60);
+    const spentSecs = timeSpent % 60;
+    examTimeResult.textContent = `Thời gian làm bài: ${spentMins} phút ${spentSecs} giây`;
+    examTimeResult.classList.remove("hidden");
+    
+    if (accuracy >= 80) msg += "Bạn đã vượt qua kỳ thi thử!";
+    else msg += "Bạn cần cố gắng hơn để vượt qua kỳ thi.";
+  } else {
+    msg += accuracy >= 80 ? "Kết quả rất tốt." : "Hãy làm lại để tăng điểm và giữ streak cao hơn.";
+  }
+  
+  resultText.textContent = msg;
   if (accuracy >= 80) burstConfetti(70);
 }
 
-function restart() {
-  currentIndex = 0;
-  score = 0;
-  streak = 0;
-  correctCount = 0;
-  answered = false;
+function quitToMenu() {
+  clearInterval(timerInterval);
+  quizCard.classList.add("hidden");
   resultCard.classList.add("hidden");
-  quizCard.classList.remove("hidden");
-  updateStats();
-  renderQuestion();
+  modeSelection.classList.remove("hidden");
+  timerContainer.classList.add("hidden");
+  streakContainer.classList.remove("hidden");
+  statsPanel.classList.remove("exam-mode");
 }
 
 function popScore() {
@@ -185,9 +274,13 @@ function shuffle(items) {
   return items;
 }
 
+learningModeBtn.addEventListener("click", () => initQuiz('learning'));
+examModeBtn.addEventListener("click", () => initQuiz('exam'));
 nextBtn.addEventListener("click", nextQuestion);
-restartBtn.addEventListener("click", restart);
-playAgainBtn.addEventListener("click", restart);
+restartBtn.addEventListener("click", quitToMenu);
+playAgainBtn.addEventListener("click", quitToMenu);
 
-renderQuestion();
-updateStats();
+// Initial state: show mode selection
+quizCard.classList.add("hidden");
+resultCard.classList.add("hidden");
+modeSelection.classList.remove("hidden");
