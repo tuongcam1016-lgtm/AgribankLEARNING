@@ -1,10 +1,37 @@
+// Các khai báo phần tử DOM
+const scoreEl = document.querySelector("#score");
+const currentQuestionEl = document.querySelector("#currentQuestion");
+const totalQuestionsEl = document.querySelector("#totalQuestions");
+const streakEl = document.querySelector("#streak");
+const accuracyEl = document.querySelector("#accuracy");
+const progressBar = document.querySelector("#progressBar");
+const categoryEl = document.querySelector("#category");
+const pointsEl = document.querySelector("#points");
+const questionText = document.querySelector("#questionText");
+const answersEl = document.querySelector("#answers");
+const feedbackEl = document.querySelector("#feedback");
+const nextBtn = document.querySelector("#nextBtn");
+const prevBtn = document.querySelector("#prevBtn");
+const restartBtn = document.querySelector("#restartBtn");
+const playAgainBtn = document.querySelector("#playAgainBtn");
+const quizCard = document.querySelector("#quizCard");
+const resultCard = document.querySelector("#resultCard");
+const resultTitle = document.querySelector("#resultTitle");
+const resultText = document.querySelector("#resultText");
+const toast = document.querySelector("#toast");
+const confettiLayer = document.querySelector("#confettiLayer");
+const timerEl = document.querySelector("#timer");
+const timerContainer = document.querySelector("#timerContainer");
+const streakContainer = document.querySelector("#streakContainer");
+const statsPanel = document.querySelector(".stats-panel");
+const examTimeResult = document.querySelector("#examTimeResult");
+
 const topicGrid = document.querySelector("#topicGrid");
 const topicSelection = document.querySelector("#topicSelection");
 const navGrid = document.querySelector("#navGrid");
 const navProgress = document.querySelector("#navProgress");
 const starBtn = document.querySelector("#starBtn");
-const prevBtn = document.querySelector("#prevBtn");
-const nextBtn = document.querySelector("#nextBtn");
+const examModeBtn = document.querySelector("#examModeBtn");
 
 const TOPICS = [
   { id: "XULYNO", name: "Xử lý nợ", icon: "🧮", count: 240 },
@@ -38,9 +65,10 @@ let quizMode = 'learning';
 let timeLeft = 0;
 let timerInterval = null;
 let startTime = 0;
-let questionStates = []; // Trạng thái từng câu: { answered: bool, correct: bool, bookmarked: bool, selected: number }
+let questionStates = []; 
 
 function renderTopics() {
+  if (!topicGrid) return;
   topicGrid.innerHTML = "";
   TOPICS.forEach(topic => {
     const card = document.createElement("div");
@@ -64,28 +92,27 @@ function initQuiz(mode, categoryId = null) {
   correctCount = 0;
   answered = false;
 
-  let sourcePool = [...window.quizQuestions];
+  let sourcePool = Array.isArray(window.quizQuestions) ? [...window.quizQuestions] : [];
   
   if (mode === 'learning') {
     if (categoryId) {
         sourcePool = sourcePool.filter(q => q.category === categoryId);
     }
     questions = shuffle(sourcePool);
-    timerContainer.classList.add("hidden");
-    streakContainer.classList.remove("hidden");
-    statsPanel.classList.remove("exam-mode");
-    examTimeResult.classList.add("hidden");
+    if (timerContainer) timerContainer.classList.add("hidden");
+    if (streakContainer) streakContainer.classList.remove("hidden");
+    if (statsPanel) statsPanel.classList.remove("exam-mode");
+    if (examTimeResult) examTimeResult.classList.add("hidden");
   } else {
     questions = shuffle(sourcePool).slice(0, 100);
     timeLeft = 60 * 60; 
     startTime = Date.now();
-    timerContainer.classList.remove("hidden");
-    streakContainer.classList.add("hidden");
-    statsPanel.classList.add("exam-mode");
+    if (timerContainer) timerContainer.classList.remove("hidden");
+    if (streakContainer) streakContainer.classList.add("hidden");
+    if (statsPanel) statsPanel.classList.add("exam-mode");
     startTimer();
   }
 
-  // Khởi tạo trạng thái cho tất cả các câu hỏi
   questionStates = questions.map(() => ({
     answered: false,
     correct: null,
@@ -93,10 +120,10 @@ function initQuiz(mode, categoryId = null) {
     selected: null
   }));
 
-  totalQuestionsEl.textContent = questions.length;
-  topicSelection.classList.add("hidden");
-  quizCard.classList.remove("hidden");
-  resultCard.classList.add("hidden");
+  if (totalQuestionsEl) totalQuestionsEl.textContent = questions.length;
+  if (topicSelection) topicSelection.classList.add("hidden");
+  if (quizCard) quizCard.classList.remove("hidden");
+  if (resultCard) resultCard.classList.add("hidden");
 
   updateStats();
   renderNav();
@@ -104,8 +131,9 @@ function initQuiz(mode, categoryId = null) {
 }
 
 function renderNav() {
+  if (!navGrid) return;
   navGrid.innerHTML = "";
-  navProgress.textContent = `${questionStates.filter(s => s.answered).length}/${questions.length}`;
+  if (navProgress) navProgress.textContent = `${questionStates.filter(s => s.answered).length}/${questions.length}`;
   
   questionStates.forEach((state, idx) => {
     const item = document.createElement("div");
@@ -134,6 +162,7 @@ function toggleBookmark() {
 }
 
 function updateStarUI() {
+    if (!starBtn) return;
     const isBookmarked = questionStates[currentIndex].bookmarked;
     starBtn.classList.toggle("active", isBookmarked);
     starBtn.innerHTML = isBookmarked ? `<span class="star-icon">★</span> Đã lưu` : `<span class="star-icon">☆</span> Lưu câu hỏi`;
@@ -153,6 +182,7 @@ function startTimer() {
 }
 
 function updateTimerDisplay() {
+  if (!timerEl) return;
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
   timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -171,44 +201,48 @@ function renderQuestion() {
   const state = questionStates[currentIndex];
   answered = state.answered;
 
-  currentQuestionEl.textContent = currentIndex + 1;
-  categoryEl.textContent = item.category || "General";
-  questionText.textContent = item.question;
-  pointsEl.textContent = quizMode === 'learning' ? `+${pointsForCurrentStreak()} điểm` : "Thi thử";
+  if (currentQuestionEl) currentQuestionEl.textContent = currentIndex + 1;
+  if (categoryEl) categoryEl.textContent = item.category || "General";
+  if (questionText) questionText.textContent = item.question;
+  if (pointsEl) pointsEl.textContent = quizMode === 'learning' ? `+${pointsForCurrentStreak()} điểm` : "Thi thử";
   
-  feedbackEl.textContent = "";
-  feedbackEl.className = "feedback";
+  if (feedbackEl) {
+    feedbackEl.textContent = "";
+    feedbackEl.className = "feedback";
+  }
   
-  // Nút điều hướng
-  prevBtn.disabled = currentIndex === 0;
-  nextBtn.disabled = !answered;
-  nextBtn.textContent = currentIndex === questions.length - 1 ? "Xem kết quả" : "Câu tiếp";
+  if (prevBtn) prevBtn.disabled = currentIndex === 0;
+  if (nextBtn) {
+    nextBtn.disabled = !answered;
+    nextBtn.textContent = currentIndex === questions.length - 1 ? "Xem kết quả" : "Câu tiếp";
+  }
   
-  progressBar.style.width = `${(currentIndex / questions.length) * 100}%`;
+  if (progressBar) progressBar.style.width = `${(currentIndex / questions.length) * 100}%`;
   updateStarUI();
 
-  answersEl.innerHTML = "";
-  const options = item.options || item.answers || [];
-  options.forEach((answer, index) => {
-    const button = document.createElement("button");
-    button.className = "answer";
-    button.type = "button";
-    button.innerHTML = `<span class="answer-key">${String.fromCharCode(65 + index)}</span><span>${answer}</span>`;
-    
-    // Nếu đã trả lời rồi thì hiển thị kết quả luôn
-    if (answered) {
-        button.disabled = true;
-        if (index === item.correct) button.classList.add("correct");
-        if (index === state.selected && !state.correct) button.classList.add("wrong");
-    } else {
-        button.addEventListener("click", () => chooseAnswer(index));
-    }
-    
-    answersEl.appendChild(button);
-  });
+  if (answersEl) {
+    answersEl.innerHTML = "";
+    const options = item.options || item.answers || [];
+    options.forEach((answer, index) => {
+      const button = document.createElement("button");
+      button.className = "answer";
+      button.type = "button";
+      button.innerHTML = `<span class="answer-key">${String.fromCharCode(65 + index)}</span><span>${answer}</span>`;
+      
+      if (answered) {
+          button.disabled = true;
+          if (index === item.correct) button.classList.add("correct");
+          if (index === state.selected && !state.correct) button.classList.add("wrong");
+      } else {
+          button.addEventListener("click", () => chooseAnswer(index));
+      }
+      
+      answersEl.appendChild(button);
+    });
+  }
 
-  if (answered) {
-    feedbackEl.textContent = state.correct ? `Chính xác! ${item.explanation}` : `Chưa đúng. ${item.explanation}`;
+  if (answered && feedbackEl) {
+    feedbackEl.textContent = state.correct ? `Chính xác! ${item.explanation || ''}` : `Chưa đúng. ${item.explanation || ''}`;
     feedbackEl.classList.add(state.correct ? "good" : "bad");
   }
 }
@@ -256,11 +290,11 @@ function pointsForCurrentStreak() {
 }
 
 function updateStats() {
-  scoreEl.textContent = score;
-  streakEl.textContent = streak;
+  if (scoreEl) scoreEl.textContent = score;
+  if (streakEl) streakEl.textContent = streak;
   const attempted = questionStates.filter(s => s.answered).length;
   const accuracy = attempted ? Math.round((correctCount / attempted) * 100) : 0;
-  accuracyEl.textContent = `${accuracy}%`;
+  if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
 }
 
 function nextQuestion() {
@@ -284,20 +318,22 @@ function prevQuestion() {
 
 function showResult() {
   clearInterval(timerInterval);
-  quizCard.classList.add("hidden");
-  resultCard.classList.remove("hidden");
-  progressBar.style.width = "100%";
+  if (quizCard) quizCard.classList.add("hidden");
+  if (resultCard) resultCard.classList.remove("hidden");
+  if (progressBar) progressBar.style.width = "100%";
   
   const accuracy = Math.round((correctCount / questions.length) * 100);
-  resultTitle.textContent = `${score} điểm - Đúng ${correctCount}/${questions.length} câu`;
+  if (resultTitle) resultTitle.textContent = `${score} điểm - Đúng ${correctCount}/${questions.length} câu`;
   
   let msg = `Độ chính xác ${accuracy}%. `;
   if (quizMode === 'exam') {
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
     const spentMins = Math.floor(timeSpent / 60);
     const spentSecs = timeSpent % 60;
-    examTimeResult.textContent = `Thời gian làm bài: ${spentMins} phút ${spentSecs} giây`;
-    examTimeResult.classList.remove("hidden");
+    if (examTimeResult) {
+      examTimeResult.textContent = `Thời gian làm bài: ${spentMins} phút ${spentSecs} giây`;
+      examTimeResult.classList.remove("hidden");
+    }
     
     if (accuracy >= 80) msg += "Bạn đã vượt qua kỳ thi thử!";
     else msg += "Bạn cần cố gắng hơn để vượt qua kỳ thi.";
@@ -305,33 +341,36 @@ function showResult() {
     msg += accuracy >= 80 ? "Kết quả rất tốt." : "Hãy làm lại để tăng điểm và giữ streak cao hơn.";
   }
   
-  resultText.textContent = msg;
+  if (resultText) resultText.textContent = msg;
   if (accuracy >= 80) burstConfetti(70);
 }
 
 function quitToMenu() {
   clearInterval(timerInterval);
-  quizCard.classList.add("hidden");
-  resultCard.classList.add("hidden");
-  topicSelection.classList.remove("hidden");
-  timerContainer.classList.add("hidden");
-  streakContainer.classList.remove("hidden");
-  statsPanel.classList.remove("exam-mode");
+  if (quizCard) quizCard.classList.add("hidden");
+  if (resultCard) resultCard.classList.add("hidden");
+  if (topicSelection) topicSelection.classList.remove("hidden");
+  if (timerContainer) timerContainer.classList.add("hidden");
+  if (streakContainer) streakContainer.classList.remove("hidden");
+  if (statsPanel) statsPanel.classList.remove("exam-mode");
 }
 
 function popScore() {
+  if (!scoreEl) return;
   scoreEl.classList.remove("score-pop");
   void scoreEl.offsetWidth;
   scoreEl.classList.add("score-pop");
 }
 
 function flashCard(className) {
+  if (!quizCard) return;
   quizCard.classList.remove("correct-flash", "wrong-flash");
   void quizCard.offsetWidth;
   quizCard.classList.add(className);
 }
 
 function showToast(message) {
+  if (!toast) return;
   toast.textContent = message;
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
@@ -339,6 +378,7 @@ function showToast(message) {
 }
 
 function burstConfetti(count = 34) {
+  if (!confettiLayer) return;
   const colors = ["#ae1c3f", "#0f9f6e", "#f2a51a", "#276ef1", "#e04b6f"];
 
   for (let i = 0; i < count; i += 1) {
@@ -361,15 +401,15 @@ function shuffle(items) {
   return items;
 }
 
-examModeBtn.addEventListener("click", () => initQuiz('exam'));
-nextBtn.addEventListener("click", nextQuestion);
-prevBtn.addEventListener("click", prevQuestion);
-starBtn.addEventListener("click", toggleBookmark);
-restartBtn.addEventListener("click", quitToMenu);
-playAgainBtn.addEventListener("click", quitToMenu);
+if (examModeBtn) examModeBtn.addEventListener("click", () => initQuiz('exam'));
+if (nextBtn) nextBtn.addEventListener("click", nextQuestion);
+if (prevBtn) prevBtn.addEventListener("click", prevQuestion);
+if (starBtn) starBtn.addEventListener("click", toggleBookmark);
+if (restartBtn) restartBtn.addEventListener("click", quitToMenu);
+if (playAgainBtn) playAgainBtn.addEventListener("click", quitToMenu);
 
-// Trạng thái ban đầu
-quizCard.classList.add("hidden");
-resultCard.classList.add("hidden");
-topicSelection.classList.remove("hidden");
+// Khởi tạo ban đầu
+if (quizCard) quizCard.classList.add("hidden");
+if (resultCard) resultCard.classList.add("hidden");
+if (topicSelection) topicSelection.classList.remove("hidden");
 renderTopics();
