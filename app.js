@@ -1,39 +1,10 @@
-let allQuestions = Array.isArray(window.quizQuestions) ? window.quizQuestions : [];
-let questions = [];
-
-const scoreEl = document.querySelector("#score");
-const currentQuestionEl = document.querySelector("#currentQuestion");
-const totalQuestionsEl = document.querySelector("#totalQuestions");
-const streakEl = document.querySelector("#streak");
-const accuracyEl = document.querySelector("#accuracy");
-const progressBar = document.querySelector("#progressBar");
-const categoryEl = document.querySelector("#category");
-const pointsEl = document.querySelector("#points");
-const questionText = document.querySelector("#questionText");
-const answersEl = document.querySelector("#answers");
-const feedbackEl = document.querySelector("#feedback");
-const nextBtn = document.querySelector("#nextBtn");
-const restartBtn = document.querySelector("#restartBtn");
-const playAgainBtn = document.querySelector("#playAgainBtn");
-const quizCard = document.querySelector("#quizCard");
-const resultCard = document.querySelector("#resultCard");
-const resultTitle = document.querySelector("#resultTitle");
-const resultText = document.querySelector("#resultText");
-const toast = document.querySelector("#toast");
-const confettiLayer = document.querySelector("#confettiLayer");
-
-// New elements
-const modeSelection = document.querySelector("#modeSelection");
-const learningModeBtn = document.querySelector("#learningModeBtn");
-const examModeBtn = document.querySelector("#examModeBtn");
-const timerEl = document.querySelector("#timer");
-const timerContainer = document.querySelector("#timerContainer");
-const streakContainer = document.querySelector("#streakContainer");
-const statsPanel = document.querySelector(".stats-panel");
-const examTimeResult = document.querySelector("#examTimeResult");
-
 const topicGrid = document.querySelector("#topicGrid");
 const topicSelection = document.querySelector("#topicSelection");
+const navGrid = document.querySelector("#navGrid");
+const navProgress = document.querySelector("#navProgress");
+const starBtn = document.querySelector("#starBtn");
+const prevBtn = document.querySelector("#prevBtn");
+const nextBtn = document.querySelector("#nextBtn");
 
 const TOPICS = [
   { id: "XULYNO", name: "Xử lý nợ", icon: "🧮", count: 240 },
@@ -57,15 +28,17 @@ const TOPICS = [
   { id: "KHCN", name: "Tín dụng KHCN", icon: "👤", count: 240 }
 ];
 
+let questions = [];
 let currentIndex = 0;
 let score = 0;
 let streak = 0;
 let correctCount = 0;
 let answered = false;
-let quizMode = 'learning'; // 'learning' or 'exam'
+let quizMode = 'learning'; 
 let timeLeft = 0;
 let timerInterval = null;
 let startTime = 0;
+let questionStates = []; // Trạng thái từng câu: { answered: bool, correct: bool, bookmarked: bool, selected: number }
 
 function renderTopics() {
   topicGrid.innerHTML = "";
@@ -91,7 +64,7 @@ function initQuiz(mode, categoryId = null) {
   correctCount = 0;
   answered = false;
 
-  let sourcePool = [...allQuestions];
+  let sourcePool = [...window.quizQuestions];
   
   if (mode === 'learning') {
     if (categoryId) {
@@ -103,9 +76,8 @@ function initQuiz(mode, categoryId = null) {
     statsPanel.classList.remove("exam-mode");
     examTimeResult.classList.add("hidden");
   } else {
-    // Exam mode: 100 random questions from all
     questions = shuffle(sourcePool).slice(0, 100);
-    timeLeft = 60 * 60; // 60 minutes
+    timeLeft = 60 * 60; 
     startTime = Date.now();
     timerContainer.classList.remove("hidden");
     streakContainer.classList.add("hidden");
@@ -113,13 +85,58 @@ function initQuiz(mode, categoryId = null) {
     startTimer();
   }
 
+  // Khởi tạo trạng thái cho tất cả các câu hỏi
+  questionStates = questions.map(() => ({
+    answered: false,
+    correct: null,
+    bookmarked: false,
+    selected: null
+  }));
+
   totalQuestionsEl.textContent = questions.length;
   topicSelection.classList.add("hidden");
   quizCard.classList.remove("hidden");
   resultCard.classList.add("hidden");
 
   updateStats();
+  renderNav();
   renderQuestion();
+}
+
+function renderNav() {
+  navGrid.innerHTML = "";
+  navProgress.textContent = `${questionStates.filter(s => s.answered).length}/${questions.length}`;
+  
+  questionStates.forEach((state, idx) => {
+    const item = document.createElement("div");
+    item.className = "nav-item";
+    if (idx === currentIndex) item.classList.add("current");
+    if (state.correct === true) item.classList.add("correct");
+    if (state.correct === false) item.classList.add("wrong");
+    if (state.bookmarked) item.classList.add("bookmarked");
+    
+    item.textContent = idx + 1;
+    item.addEventListener("click", () => jumpToQuestion(idx));
+    navGrid.appendChild(item);
+  });
+}
+
+function jumpToQuestion(idx) {
+    currentIndex = idx;
+    renderQuestion();
+    renderNav();
+}
+
+function toggleBookmark() {
+    questionStates[currentIndex].bookmarked = !questionStates[currentIndex].bookmarked;
+    updateStarUI();
+    renderNav();
+}
+
+function updateStarUI() {
+    const isBookmarked = questionStates[currentIndex].bookmarked;
+    starBtn.classList.toggle("active", isBookmarked);
+    starBtn.innerHTML = isBookmarked ? `<span class="star-icon">★</span> Đã lưu` : `<span class="star-icon">☆</span> Lưu câu hỏi`;
 }
 
 function startTimer() {
@@ -140,7 +157,7 @@ function updateTimerDisplay() {
   const secs = timeLeft % 60;
   timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   
-  if (timeLeft < 300) { // 5 minutes left
+  if (timeLeft < 300) { 
     timerEl.classList.add("warning");
   } else {
     timerEl.classList.remove("warning");
@@ -151,7 +168,8 @@ function renderQuestion() {
   if (!questions.length) return;
 
   const item = questions[currentIndex];
-  answered = false;
+  const state = questionStates[currentIndex];
+  answered = state.answered;
 
   currentQuestionEl.textContent = currentIndex + 1;
   categoryEl.textContent = item.category || "General";
@@ -160,9 +178,14 @@ function renderQuestion() {
   
   feedbackEl.textContent = "";
   feedbackEl.className = "feedback";
-  nextBtn.disabled = true;
-  nextBtn.textContent = currentIndex === questions.length - 1 ? "Xem kết quả" : "Câu tiếp theo";
+  
+  // Nút điều hướng
+  prevBtn.disabled = currentIndex === 0;
+  nextBtn.disabled = !answered;
+  nextBtn.textContent = currentIndex === questions.length - 1 ? "Xem kết quả" : "Câu tiếp";
+  
   progressBar.style.width = `${(currentIndex / questions.length) * 100}%`;
+  updateStarUI();
 
   answersEl.innerHTML = "";
   const options = item.options || item.answers || [];
@@ -171,24 +194,36 @@ function renderQuestion() {
     button.className = "answer";
     button.type = "button";
     button.innerHTML = `<span class="answer-key">${String.fromCharCode(65 + index)}</span><span>${answer}</span>`;
-    button.addEventListener("click", () => chooseAnswer(index));
+    
+    // Nếu đã trả lời rồi thì hiển thị kết quả luôn
+    if (answered) {
+        button.disabled = true;
+        if (index === item.correct) button.classList.add("correct");
+        if (index === state.selected && !state.correct) button.classList.add("wrong");
+    } else {
+        button.addEventListener("click", () => chooseAnswer(index));
+    }
+    
     answersEl.appendChild(button);
   });
+
+  if (answered) {
+    feedbackEl.textContent = state.correct ? `Chính xác! ${item.explanation}` : `Chưa đúng. ${item.explanation}`;
+    feedbackEl.classList.add(state.correct ? "good" : "bad");
+  }
 }
 
 function chooseAnswer(index) {
   if (answered) return;
 
-  answered = true;
   const item = questions[currentIndex];
-  const buttons = [...document.querySelectorAll(".answer")];
+  const state = questionStates[currentIndex];
   const isCorrect = index === item.correct;
 
-  buttons.forEach((button, buttonIndex) => {
-    button.disabled = true;
-    if (buttonIndex === item.correct) button.classList.add("correct");
-    if (buttonIndex === index && !isCorrect) button.classList.add("wrong");
-  });
+  state.answered = true;
+  state.correct = isCorrect;
+  state.selected = index;
+  answered = true;
 
   if (isCorrect) {
     if (quizMode === 'learning') {
@@ -197,11 +232,9 @@ function chooseAnswer(index) {
       streak += 1;
       showToast(`+${gained} điểm | Streak ${streak}`);
     } else {
-      score += 10; // Simple scoring for exam
+      score += 10;
     }
     correctCount += 1;
-    feedbackEl.textContent = quizMode === 'learning' ? `Chính xác! ${item.explanation}` : "Đã ghi nhận câu trả lời.";
-    feedbackEl.classList.add("good");
     flashCard("correct-flash");
     if (quizMode === 'learning') {
         popScore();
@@ -209,14 +242,13 @@ function chooseAnswer(index) {
     }
   } else {
     streak = 0;
-    feedbackEl.textContent = quizMode === 'learning' ? `Chưa đúng. ${item.explanation}` : "Đã ghi nhận câu trả lời.";
-    feedbackEl.classList.add("bad");
     flashCard("wrong-flash");
     if (quizMode === 'learning') showToast("Sai rồi, thử câu tiếp theo nào");
   }
 
   updateStats();
-  nextBtn.disabled = false;
+  renderQuestion();
+  renderNav();
 }
 
 function pointsForCurrentStreak() {
@@ -226,7 +258,7 @@ function pointsForCurrentStreak() {
 function updateStats() {
   scoreEl.textContent = score;
   streakEl.textContent = streak;
-  const attempted = currentIndex + (answered ? 1 : 0);
+  const attempted = questionStates.filter(s => s.answered).length;
   const accuracy = attempted ? Math.round((correctCount / attempted) * 100) : 0;
   accuracyEl.textContent = `${accuracy}%`;
 }
@@ -239,6 +271,15 @@ function nextQuestion() {
 
   currentIndex += 1;
   renderQuestion();
+  renderNav();
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex -= 1;
+        renderQuestion();
+        renderNav();
+    }
 }
 
 function showResult() {
@@ -322,10 +363,12 @@ function shuffle(items) {
 
 examModeBtn.addEventListener("click", () => initQuiz('exam'));
 nextBtn.addEventListener("click", nextQuestion);
+prevBtn.addEventListener("click", prevQuestion);
+starBtn.addEventListener("click", toggleBookmark);
 restartBtn.addEventListener("click", quitToMenu);
 playAgainBtn.addEventListener("click", quitToMenu);
 
-// Initial state
+// Trạng thái ban đầu
 quizCard.classList.add("hidden");
 resultCard.classList.add("hidden");
 topicSelection.classList.remove("hidden");

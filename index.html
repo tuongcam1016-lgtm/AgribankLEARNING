@@ -68,24 +68,46 @@
       </div>
     </section>
 
-    <section class="quiz-card hidden" id="quizCard">
-      <div class="progress-track" aria-hidden="true">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
+    <section class="quiz-container hidden" id="quizCard">
+      <!-- Question Navigation Sidebar -->
+      <aside class="question-nav" id="questionNav">
+        <div class="nav-header">
+          <h3>Danh sách câu</h3>
+          <span id="navProgress">0/0</span>
+        </div>
+        <div class="nav-grid" id="navGrid">
+          <!-- Question numbers will be injected here -->
+        </div>
+      </aside>
 
-      <div class="question-topline">
-        <span class="category" id="category">Kien thuc chung</span>
-        <span class="points" id="points">+10 diem</span>
-      </div>
+      <!-- Main Question Area -->
+      <div class="quiz-main">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
 
-      <h2 id="questionText"></h2>
-      <div class="answers" id="answers"></div>
+        <div class="question-topline">
+          <div class="topline-left">
+            <span class="category" id="category">Topic</span>
+            <span class="points" id="points">+10 điểm</span>
+          </div>
+          <button class="btn-star" id="starBtn" title="Đánh dấu câu hỏi này">
+            <span class="star-icon">☆</span> Lưu câu hỏi
+          </button>
+        </div>
 
-      <div class="feedback" id="feedback" aria-live="polite"></div>
+        <h2 id="questionText"></h2>
+        <div class="answers" id="answers"></div>
 
-      <div class="actions">
-        <button class="secondary" id="restartBtn" type="button">Thoát</button>
-        <button class="primary" id="nextBtn" type="button" disabled>Câu tiếp theo</button>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+
+        <div class="actions">
+          <button class="secondary" id="restartBtn" type="button">Thoát</button>
+          <div class="nav-actions">
+            <button class="secondary" id="prevBtn" type="button">Câu trước</button>
+            <button class="primary" id="nextBtn" type="button" disabled>Câu tiếp</button>
+          </div>
+        </div>
       </div>
     </section>
 
