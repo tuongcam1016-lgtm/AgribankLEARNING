@@ -45,19 +45,26 @@
       </div>
     </section>
 
-    <!-- Mode Selection -->
-    <section class="mode-selection" id="modeSelection">
-      <div class="mode-card">
-        <div class="mode-icon">📚</div>
-        <h3>Chế độ Ôn tập</h3>
-        <p>Học tất cả 400 câu hỏi, không giới hạn thời gian, có giải thích chi tiết ngay sau khi chọn.</p>
-        <button class="primary" id="learningModeBtn">Bắt đầu Ôn tập</button>
+    <!-- Topic Selection Grid -->
+    <section class="topic-selection" id="topicSelection">
+      <div class="section-header">
+        <h2>Danh mục Ôn tập</h2>
+        <p>Chọn chuyên đề để bắt đầu ôn luyện kiến thức</p>
       </div>
-      <div class="mode-card">
-        <div class="mode-icon">⏱️</div>
-        <h3>Chế độ Thi thử</h3>
-        <p>Thử thách với 100 câu hỏi ngẫu nhiên trong 60 phút. Chỉ xem kết quả sau khi hoàn thành.</p>
-        <button class="primary" id="examModeBtn">Bắt đầu Thi</button>
+      
+      <div class="topic-grid" id="topicGrid">
+        <!-- Topics will be injected by JavaScript -->
+      </div>
+
+      <div class="special-modes">
+        <div class="mode-card featured" id="examModeBtn">
+          <div class="mode-icon">📋</div>
+          <div class="mode-info">
+            <h3>Thi thử Tổng hợp</h3>
+            <p>100 Câu - 60 Phút</p>
+          </div>
+          <button class="primary">Bắt đầu Thi</button>
+        </div>
       </div>
     </section>
 

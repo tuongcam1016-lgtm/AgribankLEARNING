@@ -32,6 +32,31 @@ const streakContainer = document.querySelector("#streakContainer");
 const statsPanel = document.querySelector(".stats-panel");
 const examTimeResult = document.querySelector("#examTimeResult");
 
+const topicGrid = document.querySelector("#topicGrid");
+const topicSelection = document.querySelector("#topicSelection");
+
+const TOPICS = [
+  { id: "XULYNO", name: "Xử lý nợ", icon: "🧮", count: 240 },
+  { id: "TTQT", name: "TTQT & TTTM", icon: "🚢", count: 240 },
+  { id: "QLRR", name: "Kế hoạch & QLRR", icon: "📊", count: 240 },
+  { id: "KTGDNB", name: "Kế toán nội bộ", icon: "🏦", count: 240 },
+  { id: "KTGDKH", name: "Kế toán khách hàng", icon: "🎧", count: 240 },
+  { id: "KIEMNGAN", name: "Kiểm ngân", icon: "💵", count: 240 },
+  { id: "KTGSNB", name: "KTGSNB", icon: "🛡️", count: 240 },
+  { id: "CNTT", name: "Công nghệ thông tin", icon: "💻", count: 240 },
+  { id: "NSTL", name: "Nhân sự - Tiền lương", icon: "📅", count: 240 },
+  { id: "PHAPCHE", name: "Pháp chế", icon: "⚖️", count: 240 },
+  { id: "XDCB", name: "XDCB & QTHC", icon: "🛠️", count: 240 },
+  { id: "VTLT", name: "Văn thư, lễ tân", icon: "✉️", count: 240 },
+  { id: "CPC", name: "Chi nhánh Campuchia", icon: "🗺️", count: 187 },
+  { id: "KIENTHUCCHUNG", name: "Kiến thức chung", icon: "📖", count: 190 },
+  { id: "QLCP", name: "Quản lý cấp phòng", icon: "💬", count: 50 },
+  { id: "TCTP", name: "Tiêu chuẩn tác phong", icon: "👔", count: 10 },
+  { id: "KHDN", name: "Tín dụng KHDN", icon: "🏢", count: 240 },
+  { id: "THAMDINH", name: "Thẩm định", icon: "🔍", count: 240 },
+  { id: "KHCN", name: "Tín dụng KHCN", icon: "👤", count: 240 }
+];
+
 let currentIndex = 0;
 let score = 0;
 let streak = 0;
@@ -42,7 +67,23 @@ let timeLeft = 0;
 let timerInterval = null;
 let startTime = 0;
 
-function initQuiz(mode) {
+function renderTopics() {
+  topicGrid.innerHTML = "";
+  TOPICS.forEach(topic => {
+    const card = document.createElement("div");
+    card.className = "topic-card";
+    card.innerHTML = `
+      <div class="topic-icon">${topic.icon}</div>
+      <h3>${topic.name}</h3>
+      <p>${topic.count} Câu</p>
+      <button class="btn-access">🚀 Truy cập</button>
+    `;
+    card.addEventListener("click", () => initQuiz('learning', topic.id));
+    topicGrid.appendChild(card);
+  });
+}
+
+function initQuiz(mode, categoryId = null) {
   quizMode = mode;
   currentIndex = 0;
   score = 0;
@@ -50,15 +91,20 @@ function initQuiz(mode) {
   correctCount = 0;
   answered = false;
 
+  let sourcePool = [...allQuestions];
+  
   if (mode === 'learning') {
-    questions = shuffle([...allQuestions]);
+    if (categoryId) {
+        sourcePool = sourcePool.filter(q => q.category === categoryId);
+    }
+    questions = shuffle(sourcePool);
     timerContainer.classList.add("hidden");
     streakContainer.classList.remove("hidden");
     statsPanel.classList.remove("exam-mode");
     examTimeResult.classList.add("hidden");
   } else {
-    // Exam mode: 100 random questions
-    questions = shuffle([...allQuestions]).slice(0, 100);
+    // Exam mode: 100 random questions from all
+    questions = shuffle(sourcePool).slice(0, 100);
     timeLeft = 60 * 60; // 60 minutes
     startTime = Date.now();
     timerContainer.classList.remove("hidden");
@@ -68,7 +114,7 @@ function initQuiz(mode) {
   }
 
   totalQuestionsEl.textContent = questions.length;
-  modeSelection.classList.add("hidden");
+  topicSelection.classList.add("hidden");
   quizCard.classList.remove("hidden");
   resultCard.classList.add("hidden");
 
@@ -226,7 +272,7 @@ function quitToMenu() {
   clearInterval(timerInterval);
   quizCard.classList.add("hidden");
   resultCard.classList.add("hidden");
-  modeSelection.classList.remove("hidden");
+  topicSelection.classList.remove("hidden");
   timerContainer.classList.add("hidden");
   streakContainer.classList.remove("hidden");
   statsPanel.classList.remove("exam-mode");
@@ -274,13 +320,13 @@ function shuffle(items) {
   return items;
 }
 
-learningModeBtn.addEventListener("click", () => initQuiz('learning'));
 examModeBtn.addEventListener("click", () => initQuiz('exam'));
 nextBtn.addEventListener("click", nextQuestion);
 restartBtn.addEventListener("click", quitToMenu);
 playAgainBtn.addEventListener("click", quitToMenu);
 
-// Initial state: show mode selection
+// Initial state
 quizCard.classList.add("hidden");
 resultCard.classList.add("hidden");
-modeSelection.classList.remove("hidden");
+topicSelection.classList.remove("hidden");
+renderTopics();
